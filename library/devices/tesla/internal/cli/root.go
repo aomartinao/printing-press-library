@@ -264,6 +264,7 @@ See README.md or the bundled SKILL.md for recipes.`,
 	rootCmd.AddCommand(authCmd)
 	rootCmd.AddCommand(newReadyCmd(flags))
 	rootCmd.AddCommand(newCostCmd(flags))
+	rootCmd.AddCommand(newChargingHistoryCmd(flags))
 	rootCmd.AddCommand(newSuperchargerCmd(flags))
 	rootCmd.AddCommand(newTimelineCmd(flags))
 	rootCmd.AddCommand(newVampireCmd(flags))

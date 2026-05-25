@@ -207,6 +207,17 @@
       ],
       "validated_outcome": "Unit tests (fleetAPIBase, teslaShouldUseFleetForReads, SaveFleetAPIBase, rewriteFleetSubsetPath, unwrapFleetSubset, AuthHeader fleet-bearer, no-persist regression, newClient routing) plus full module build/vet/test/govulncheck pass. Read-routing uses a non-persisted UseFleetBearer flag + a client-level base URL so a token refresh never writes a transient auth_header/base_url to disk. Validated live against an EU vehicle: products, full vehicle_data, ready --force-refresh, and get-data-* subset commands return real data with zero env vars; the fleet 401->refresh path was exercised with an invalid token and re-minted cleanly without polluting the config. Hardened after an independent Codex adversarial review: Fleet base-host allowlist (https + tesla.com, loopback for tests/relay) blocks bearer exfiltration via TESLA_FLEET_API_URL/api_base; TESLA_FLEET_TOKEN is honored for read routing; cacheKey resolves AuthHeader before reading AuthSource; the refresh callback validates client_id. Fleet drive_state GPS is gated on the vehicle_location scope (decoded from the Fleet JWT): with the scope, drive_state also requests the location_data endpoint and merges GPS into the response; without it, drive_state is fetched alone so the call never 403s.",
       "upstream_issue": "https://github.com/mvanhorn/cli-printing-press/issues/2181"
+    },
+    {
+      "id": "tesla-charging-history",
+      "summary": "New `charging-history` command: fetches the account's charging history from the Fleet API (GET /api/1/dx/charging/history) — real sessions with energy, fees, and currency, available retroactively — and with --import writes them into the local tesla_charges table so `cost ledger`/`cost what-if` work on real data.",
+      "reason": "The CLI's cost analytics only operated on charges stitched from polled vehicle_states (no cost, no backfill), so a fresh install had empty cost data. Tesla serves authoritative charging history server-side; this surfaces it and backfills the local store. fast_charger_type is stored as 'Tesla' so cost ledger's home-vs-Supercharger split classifies the sessions correctly.",
+      "files": [
+        "internal/cli/tesla_charging_history.go",
+        "internal/cli/tesla_charging_history_test.go",
+        "internal/cli/root.go"
+      ],
+      "validated_outcome": "Unit tests for the session helpers + --since parsing pass; build/vet/test green. Validated live against an EU account: backfilled 25 real Supercharger sessions (1029.6 kWh) and `cost ledger --since 90d` then reported the correct home-vs-Supercharger split with real per-kWh costs."
     }
   ]
 }
